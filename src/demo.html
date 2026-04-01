@@ -4,23 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>VIS Transportation Assistant</title>
-
-<!-- PWA manifest -->
 <link rel="manifest" href="/manifest.json">
-
-<!-- Theme color — purple in browser chrome -->
 <meta name="theme-color" content="#7F77DD">
-
-<!-- iOS install support -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VIS Rides">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
-
-<!-- Android / general -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="VIS Rides">
-<meta name="description" content="Book medical transportation — no phone call needed. English &amp; Spanish.">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -33,46 +24,80 @@
     --accent: #7F77DD;
     --teal: #1D9E75;
     --user-bg: #2a2a35;
+    --mic-active: #E24B4A;
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
-  header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: var(--surface); }
-  .logo { width: 36px; height: 36px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .header-info h1 { font-size: 15px; font-weight: 500; }
-  .header-info p { font-size: 12px; color: var(--muted); margin-top: 1px; }
-  .status-dot { width: 8px; height: 8px; background: var(--teal); border-radius: 50%; margin-left: auto; box-shadow: 0 0 0 3px rgba(29,158,117,0.2); }
-  .member-bar { padding: 10px 24px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
-  .member-bar select, .member-bar button { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; }
-  .member-bar button { background: var(--accent); border-color: var(--accent); color: white; }
-  .messages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-  .message { display: flex; gap: 10px; max-width: 680px; }
-  .message.user { align-self: flex-end; flex-direction: row-reverse; }
-  .avatar { width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; }
-  .avatar.ai { background: var(--accent); color: white; }
-  .avatar.user { background: var(--surface2); color: var(--muted); }
-  .bubble { padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; max-width: 520px; }
-  .message.ai .bubble { background: var(--surface); border: 1px solid var(--border); border-top-left-radius: 3px; }
-  .message.user .bubble { background: var(--user-bg); border: 1px solid var(--border); border-top-right-radius: 3px; }
-  .thinking { display: flex; gap: 4px; align-items: center; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; border-top-left-radius: 3px; }
-  .dot { width: 6px; height: 6px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; }
-  .dot:nth-child(2) { animation-delay: 0.2s; }
-  .dot:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-5px); opacity: 1; } }
-  .input-area { padding: 16px 24px; border-top: 1px solid var(--border); background: var(--surface); display: flex; gap: 10px; align-items: flex-end; }
-  textarea { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; padding: 10px 14px; resize: none; min-height: 44px; max-height: 120px; line-height: 1.5; font-family: inherit; outline: none; transition: border-color 0.15s; }
-  textarea:focus { border-color: var(--accent); }
-  textarea::placeholder { color: var(--muted); }
-  button#send { background: var(--accent); border: none; border-radius: 10px; color: white; width: 44px; height: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity 0.15s; }
-  button#send:hover { opacity: 0.85; }
-  button#send:disabled { opacity: 0.4; cursor: not-allowed; }
-  .quick-replies { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 24px 12px; }
-  .qr { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--muted); cursor: pointer; transition: all 0.15s; }
-  .qr:hover { border-color: var(--accent); color: var(--text); }
-  .lang-badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
-  .lang-en { background: rgba(127,119,221,0.15); color: var(--accent); }
-  .lang-es { background: rgba(29,158,117,0.15); color: var(--teal); }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: var(--surface); flex-shrink: 0; }
+  .logo { width: 34px; height: 34px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+  .header-info h1 { font-size: 14px; font-weight: 500; }
+  .header-info p { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .status-dot { width: 8px; height: 8px; background: var(--teal); border-radius: 50%; box-shadow: 0 0 0 3px rgba(29,158,117,0.2); }
   #conn-status { font-size: 11px; padding: 3px 8px; border-radius: 10px; }
   .conn-ok { background: rgba(29,158,117,0.15); color: var(--teal); }
   .conn-err { background: rgba(226,75,74,0.15); color: #E24B4A; }
+
+  /* Voice toggle in header */
+  .voice-toggle { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); cursor: pointer; user-select: none; }
+  .voice-toggle input { display: none; }
+  .toggle-pill { width: 28px; height: 16px; background: var(--surface2); border-radius: 8px; position: relative; transition: background 0.2s; border: 1px solid var(--border); }
+  .toggle-pill::after { content: ''; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; background: var(--muted); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
+  .voice-toggle input:checked + .toggle-pill { background: rgba(127,119,221,0.3); border-color: var(--accent); }
+  .voice-toggle input:checked + .toggle-pill::after { transform: translateX(12px); background: var(--accent); }
+
+  .member-bar { padding: 8px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); flex-shrink: 0; }
+  .member-bar select, .member-bar button { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; }
+  .member-bar button { background: var(--accent); border-color: var(--accent); color: white; }
+
+  .messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .message { display: flex; gap: 10px; max-width: 100%; }
+  .message.user { align-self: flex-end; flex-direction: row-reverse; }
+  .avatar { width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; }
+  .avatar.ai { background: var(--accent); color: white; }
+  .avatar.user { background: var(--surface2); color: var(--muted); }
+  .bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.6; max-width: calc(100% - 42px); }
+  .message.ai .bubble { background: var(--surface); border: 1px solid var(--border); border-top-left-radius: 3px; }
+  .message.user .bubble { background: var(--user-bg); border: 1px solid var(--border); border-top-right-radius: 3px; }
+
+  /* Speak button on AI messages */
+  .speak-btn { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; padding: 4px 10px; background: none; border: 1px solid var(--border); border-radius: 20px; color: var(--muted); font-size: 11px; cursor: pointer; transition: all 0.15s; }
+  .speak-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .speak-btn.speaking { border-color: var(--teal); color: var(--teal); }
+
+  .thinking { display: flex; gap: 4px; align-items: center; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; border-top-left-radius: 3px; }
+  .dot { width: 5px; height: 5px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:0.4}40%{transform:translateY(-4px);opacity:1} }
+
+  /* Input area */
+  .input-area { padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface); display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+  textarea { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; padding: 9px 12px; resize: none; min-height: 40px; max-height: 100px; line-height: 1.5; font-family: inherit; outline: none; transition: border-color 0.15s; }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+
+  /* Mic button */
+  #mic-btn { width: 40px; height: 40px; border-radius: 10px; border: none; background: var(--surface2); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; position: relative; }
+  #mic-btn:hover { background: rgba(127,119,221,0.15); color: var(--accent); }
+  #mic-btn.listening { background: rgba(226,75,74,0.15); color: var(--mic-active); animation: pulse-ring 1.2s ease-in-out infinite; }
+  @keyframes pulse-ring { 0%,100%{box-shadow:0 0 0 0 rgba(226,75,74,0.3)}50%{box-shadow:0 0 0 6px rgba(226,75,74,0)} }
+
+  /* Send button */
+  #send-btn { width: 40px; height: 40px; border-radius: 10px; border: none; background: var(--accent); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity 0.15s; }
+  #send-btn:hover { opacity: 0.85; }
+  #send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Listening overlay */
+  #listening-indicator { display: none; position: absolute; bottom: 72px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid rgba(226,75,74,0.4); border-radius: 12px; padding: 10px 18px; font-size: 12px; color: #E24B4A; white-space: nowrap; z-index: 10; }
+  #listening-indicator.show { display: block; }
+
+  .quick-replies { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 16px 10px; flex-shrink: 0; }
+  .qr { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 11px; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .qr:hover { border-color: var(--accent); color: var(--text); }
+  .lang-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 5px; vertical-align: middle; }
+  .lang-en { background: rgba(127,119,221,0.15); color: var(--accent); }
+  .lang-es { background: rgba(29,158,117,0.15); color: var(--teal); }
 </style>
 </head>
 <body>
@@ -83,19 +108,26 @@
     <h1>VIS Transportation Assistant</h1>
     <p>Powered by AI · English &amp; Spanish</p>
   </div>
-  <span id="conn-status" class="conn-ok">Live</span>
-  <div class="status-dot"></div>
+  <div class="header-right">
+    <label class="voice-toggle" title="AI speaks responses aloud">
+      <input type="checkbox" id="voice-output-toggle" checked>
+      <div class="toggle-pill"></div>
+      <span>Voice</span>
+    </label>
+    <span id="conn-status" class="conn-ok">Live</span>
+    <div class="status-dot"></div>
+  </div>
 </header>
 
 <div class="member-bar">
-  <span>Demo member:</span>
+  <span>Demo:</span>
   <select id="member-select">
-    <option value="">— select a member —</option>
+    <option value="">— select member —</option>
     <option value="MBR-001">MBR-001 · Maria Garcia (Spanish)</option>
     <option value="MBR-002">MBR-002 · James Williams (English)</option>
     <option value="MBR-003">MBR-003 · Robert Chen (no coverage)</option>
   </select>
-  <button onclick="resetChat()">New conversation</button>
+  <button onclick="resetChat()">New chat</button>
 </div>
 
 <div class="messages" id="messages">
@@ -103,9 +135,8 @@
     <div class="avatar ai">AI</div>
     <div class="bubble">
       Hello! I'm your transportation assistant. I can help you book a ride to your next medical appointment — no phone call needed.<br><br>
-      To get started, select a demo member above or share your member ID.
-      <br><br>
-      <em style="color: var(--muted); font-size:12px">¡También hablo español!</em>
+      <strong>Tap the microphone</strong> to speak, or type below.<br><br>
+      <em style="color:var(--muted);font-size:11px">¡También hablo español! Toque el micrófono para hablar.</em>
     </div>
   </div>
 </div>
@@ -117,195 +148,374 @@
   <div class="qr" onclick="sendQuick('Mi número de miembro es MBR-001')">Usar MBR-001</div>
 </div>
 
+<div style="position:relative">
+  <div id="listening-indicator">🎙 Listening... tap mic to stop</div>
+</div>
+
 <div class="input-area">
-  <textarea id="input" placeholder="Type your message..." rows="1"></textarea>
-  <button id="send" onclick="sendMessage()">
+  <button id="mic-btn" onclick="toggleMic()" title="Tap to speak">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="22" y1="2" x2="11" y2="13"></line>
-      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+  </button>
+  <textarea id="input" placeholder="Type or tap the mic to speak..." rows="1"></textarea>
+  <button id="send-btn" onclick="sendMessage()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13"/>
+      <polygon points="22 2 15 22 11 13 2 9 22 2"/>
     </svg>
   </button>
 </div>
 
 <script>
-  // BACKEND_URL is replaced at build time by Netlify using environment variable.
-  // If not set, falls back to Railway default pattern.
-  // Same server serves the app AND the API — so backend is just this same domain.
-  // Works on Railway, works locally, no URL to configure.
-  const BACKEND = window.location.origin;
+const BACKEND = window.location.origin;
+let history = [];
+let recognition = null;
+let isListening = false;
+let currentUtterance = null;
 
-  let history = [];
-  const messagesEl = document.getElementById('messages');
-  const inputEl = document.getElementById('input');
-  const sendBtn = document.getElementById('send');
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('send-btn');
+const micBtn = document.getElementById('mic-btn');
+const listeningIndicator = document.getElementById('listening-indicator');
+const voiceOutputToggle = document.getElementById('voice-output-toggle');
 
-  inputEl.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  });
-  inputEl.addEventListener('input', () => {
+// ── Text input handlers ──────────────────────────────────────────────────────
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
+});
+
+// ── Language detection ───────────────────────────────────────────────────────
+function detectLang(text) {
+  const sw = ['necesito','viaje','médico','cita','por favor','gracias','hola','quiero','tengo','confirmado','recogida','destino','reserva','conductor','viaje'];
+  return sw.some(w => text.toLowerCase().includes(w)) ? 'es' : 'en';
+}
+
+// ── Speech recognition (member speaks → text) ────────────────────────────────
+function setupRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return null;
+
+  const rec = new SpeechRecognition();
+  rec.continuous = false;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+
+  rec.onstart = () => {
+    isListening = true;
+    micBtn.classList.add('listening');
+    listeningIndicator.classList.add('show');
+  };
+
+  rec.onresult = (e) => {
+    const transcript = Array.from(e.results)
+      .map(r => r[0].transcript)
+      .join('');
+
+    // Show what the member is saying in real time in the textarea
+    inputEl.value = transcript;
     inputEl.style.height = 'auto';
-    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
-  });
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
 
-  function getMemberId() { return document.getElementById('member-select').value || null; }
+    // Set language based on what they're speaking
+    const lang = detectLang(transcript);
+    rec.lang = lang === 'es' ? 'es-US' : 'en-US';
 
-  function detectLang(text) {
-    const sw = ['necesito','viaje','médico','cita','por favor','gracias','hola','quiero','tengo'];
-    return sw.some(w => text.toLowerCase().includes(w)) ? 'es' : 'en';
-  }
-
-  function addMessage(role, text) {
-    const div = document.createElement('div');
-    div.className = `message ${role}`;
-    const avatar = document.createElement('div');
-    avatar.className = `avatar ${role}`;
-    avatar.textContent = role === 'ai' ? 'AI' : 'You';
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    const lang = detectLang(text);
-    const badge = role === 'ai'
-      ? `<span class="lang-badge lang-${lang}">${lang.toUpperCase()}</span>`
-      : '';
-    const formatted = text
-      .replace(/VIS-\d+/g, '<strong style="color:#5DCAA5">$&</strong>')
-      .replace(/\n/g, '<br>');
-    bubble.innerHTML = formatted + badge;
-    div.appendChild(avatar);
-    div.appendChild(bubble);
-    messagesEl.appendChild(div);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-
-  function addThinking() {
-    const div = document.createElement('div');
-    div.className = 'message ai'; div.id = 'thinking';
-    div.innerHTML = `<div class="avatar ai">AI</div><div class="thinking"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
-    messagesEl.appendChild(div);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-
-  async function sendMessage() {
-    const text = inputEl.value.trim();
-    if (!text || sendBtn.disabled) return;
-    inputEl.value = ''; inputEl.style.height = 'auto';
-    document.getElementById('quick-replies').style.display = 'none';
-    sendBtn.disabled = true;
-    addMessage('user', text);
-    addThinking();
-    try {
-      const res = await fetch(`${BACKEND}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history, member_id: getMemberId() })
-      });
-      const data = await res.json();
-      document.getElementById('thinking')?.remove();
-      addMessage('ai', data.reply || 'Something went wrong. Please try again.');
-      if (data.history) history = data.history;
-      document.getElementById('conn-status').textContent = 'Live';
-      document.getElementById('conn-status').className = 'conn-ok';
-    } catch (err) {
-      document.getElementById('thinking')?.remove();
-      addMessage('ai', `Cannot reach the server.\n\nMake sure your Railway URL is set correctly.\n\n${err.message}`);
-      document.getElementById('conn-status').textContent = 'Offline';
-      document.getElementById('conn-status').className = 'conn-err';
+    // If this is a final result, send automatically
+    if (e.results[e.results.length - 1].isFinal) {
+      stopListening();
+      setTimeout(() => sendMessage(), 300);
     }
-    sendBtn.disabled = false;
-    inputEl.focus();
+  };
+
+  rec.onerror = (e) => {
+    console.warn('[mic]', e.error);
+    stopListening();
+    if (e.error === 'not-allowed') {
+      addSystemMessage('Microphone access was denied. Please allow microphone access in your browser settings.');
+    }
+  };
+
+  rec.onend = () => stopListening();
+
+  return rec;
+}
+
+function toggleMic() {
+  if (isListening) {
+    stopListening();
+    return;
+  }
+  startListening();
+}
+
+function startListening() {
+  // Stop any current AI speech when member starts talking
+  stopSpeaking();
+
+  if (!recognition) recognition = setupRecognition();
+  if (!recognition) {
+    addSystemMessage('Voice input is not supported in this browser. Please use Chrome or Safari.');
+    return;
   }
 
-  function sendQuick(text) { inputEl.value = text; sendMessage(); }
+  // Detect member language preference from selected member
+  const memberId = document.getElementById('member-select').value;
+  recognition.lang = memberId === 'MBR-001' ? 'es-US' : 'en-US';
 
-  function resetChat() {
-    history = [];
-    messagesEl.innerHTML = `<div class="message ai"><div class="avatar ai">AI</div><div class="bubble">Hello! I'm your transportation assistant. Select a demo member above or share your member ID to get started.<br><br><em style="color:var(--muted);font-size:12px">¡También hablo español!</em></div></div>`;
-    document.getElementById('quick-replies').style.display = 'flex';
+  try {
+    recognition.start();
+  } catch(e) {
+    console.warn('[mic] already started');
   }
+}
 
-  // ── Service worker registration ──────────────────────────────────────────
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('[SW] registered, scope:', reg.scope))
-        .catch(err => console.warn('[SW] registration failed:', err));
-    });
-  }
+function stopListening() {
+  isListening = false;
+  micBtn.classList.remove('listening');
+  listeningIndicator.classList.remove('show');
+  try { recognition?.stop(); } catch(e) {}
+}
 
-  // ── Install prompt (Android) ─────────────────────────────────────────────
-  // Shows a subtle banner the first time someone opens the app in the browser
-  let deferredPrompt = null;
+// ── Text to speech (AI speaks back) ──────────────────────────────────────────
+function speak(text, lang = 'en') {
+  if (!voiceOutputToggle.checked) return;
+  if (!window.speechSynthesis) return;
 
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredPrompt = e;
-    showInstallBanner();
+  // Stop any current speech
+  stopSpeaking();
+
+  // Strip markdown bold/italic for cleaner speech
+  const clean = text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/---/g, '')
+    .replace(/[🚗📍🕐🏥📅✅🎉😊📌🔄]/g, '')
+    .trim();
+
+  const utterance = new SpeechSynthesisUtterance(clean);
+  utterance.lang = lang === 'es' ? 'es-US' : 'en-US';
+  utterance.rate = 0.92;
+  utterance.pitch = 1.05;
+  utterance.volume = 1;
+
+  // Try to find a good natural voice
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v =>
+    lang === 'es'
+      ? (v.lang.startsWith('es') && v.name.includes('Natural'))
+      : (v.lang.startsWith('en') && (v.name.includes('Samantha') || v.name.includes('Natural') || v.name.includes('Google')))
+  ) || voices.find(v => lang === 'es' ? v.lang.startsWith('es') : v.lang.startsWith('en'));
+
+  if (preferred) utterance.voice = preferred;
+
+  currentUtterance = utterance;
+  window.speechSynthesis.speak(utterance);
+}
+
+function stopSpeaking() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  currentUtterance = null;
+  // Reset all speak buttons
+  document.querySelectorAll('.speak-btn').forEach(b => {
+    b.classList.remove('speaking');
+    b.textContent = '🔊 Speak';
   });
+}
 
-  function showInstallBanner() {
+// Load voices (some browsers need this event)
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+
+// ── Message rendering ─────────────────────────────────────────────────────────
+function addMessage(role, text) {
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = `avatar ${role}`;
+  avatar.textContent = role === 'ai' ? 'AI' : 'You';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  const lang = detectLang(text);
+  const badge = role === 'ai'
+    ? `<span class="lang-badge lang-${lang}">${lang.toUpperCase()}</span>`
+    : '';
+
+  const formatted = text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/VIS-\d+/g, '<strong style="color:#5DCAA5">$&</strong>')
+    .replace(/\n/g, '<br>');
+
+  // Add a speak button on AI messages
+  const speakBtnHtml = role === 'ai'
+    ? `<br><button class="speak-btn" onclick="handleSpeakBtn(this, ${JSON.stringify(text)}, '${lang}')">🔊 Speak</button>`
+    : '';
+
+  bubble.innerHTML = formatted + badge + speakBtnHtml;
+
+  div.appendChild(avatar);
+  div.appendChild(bubble);
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  // Auto-speak AI responses if voice output is on
+  if (role === 'ai' && voiceOutputToggle.checked) {
+    speak(text, lang);
+    // Mark the speak button as active
+    const btn = bubble.querySelector('.speak-btn');
+    if (btn) btn.classList.add('speaking');
+  }
+}
+
+function handleSpeakBtn(btn, text, lang) {
+  if (btn.classList.contains('speaking')) {
+    stopSpeaking();
+  } else {
+    stopSpeaking();
+    btn.classList.add('speaking');
+    btn.textContent = '⏹ Stop';
+    speak(text, lang);
+    if (currentUtterance) {
+      currentUtterance.onend = () => {
+        btn.classList.remove('speaking');
+        btn.textContent = '🔊 Speak';
+      };
+    }
+  }
+}
+
+function addSystemMessage(text) {
+  const div = document.createElement('div');
+  div.style.cssText = 'text-align:center;font-size:11px;color:var(--muted);padding:4px 0';
+  div.textContent = text;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function addThinking() {
+  const div = document.createElement('div');
+  div.className = 'message ai';
+  div.id = 'thinking';
+  div.innerHTML = `<div class="avatar ai">AI</div><div class="thinking"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+// ── Send message ──────────────────────────────────────────────────────────────
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text || sendBtn.disabled) return;
+
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  document.getElementById('quick-replies').style.display = 'none';
+  sendBtn.disabled = true;
+  stopSpeaking();
+
+  addMessage('user', text);
+  addThinking();
+
+  try {
+    const res = await fetch(`${BACKEND}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        history,
+        member_id: document.getElementById('member-select').value || null
+      })
+    });
+    const data = await res.json();
+    document.getElementById('thinking')?.remove();
+    addMessage('ai', data.reply || 'Something went wrong. Please try again.');
+    if (data.history) history = data.history;
+    document.getElementById('conn-status').textContent = 'Live';
+    document.getElementById('conn-status').className = 'conn-ok';
+  } catch (err) {
+    document.getElementById('thinking')?.remove();
+    addMessage('ai', `Cannot reach the server.\n\n${err.message}`);
+    document.getElementById('conn-status').textContent = 'Offline';
+    document.getElementById('conn-status').className = 'conn-err';
+  }
+
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
+
+function sendQuick(text) { inputEl.value = text; sendMessage(); }
+
+function resetChat() {
+  history = [];
+  stopSpeaking();
+  messagesEl.innerHTML = `
+    <div class="message ai">
+      <div class="avatar ai">AI</div>
+      <div class="bubble">
+        Hello! I'm your transportation assistant. I can help you book a ride to your next medical appointment — no phone call needed.<br><br>
+        <strong>Tap the microphone</strong> to speak, or type below.<br><br>
+        <em style="color:var(--muted);font-size:11px">¡También hablo español! Toque el micrófono para hablar.</em>
+      </div>
+    </div>`;
+  document.getElementById('quick-replies').style.display = 'flex';
+  getMemberId();
+}
+
+function getMemberId() { return document.getElementById('member-select').value || null; }
+
+// ── Service worker ────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
+// ── PWA install prompt ────────────────────────────────────────────────────────
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
+
+function showInstallBanner() {
+  if (document.getElementById('install-banner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'install-banner';
+  banner.style.cssText = `position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:#1a1a1f;border:1px solid rgba(127,119,221,0.4);border-radius:12px;padding:10px 16px;display:flex;align-items:center;gap:10px;z-index:999;font-size:12px;color:#e8e6e0;max-width:300px;width:calc(100% - 40px)`;
+  banner.innerHTML = `<span style="font-size:20px">🚗</span><div style="flex:1"><div style="font-weight:500;margin-bottom:1px">Add VIS Rides to home screen</div><div style="color:#888780;font-size:10px">Works like a real app</div></div><button onclick="installApp()" style="background:#7F77DD;border:none;color:white;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer">Install</button><button onclick="document.getElementById('install-banner').remove()" style="background:none;border:none;color:#888780;cursor:pointer;font-size:16px">×</button>`;
+  document.body.appendChild(banner);
+}
+
+async function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner')?.remove();
+}
+
+if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone) {
+  setTimeout(() => {
     if (document.getElementById('install-banner')) return;
     const banner = document.createElement('div');
     banner.id = 'install-banner';
-    banner.style.cssText = `
-      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-      background: #1a1a1f; border: 1px solid rgba(127,119,221,0.4);
-      border-radius: 12px; padding: 12px 18px; display: flex;
-      align-items: center; gap: 12px; z-index: 999;
-      font-size: 13px; color: #e8e6e0; box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-      max-width: 320px; width: calc(100% - 48px);
-    `;
-    banner.innerHTML = `
-      <span style="font-size:22px">🚗</span>
-      <div style="flex:1">
-        <div style="font-weight:500;margin-bottom:2px">Add VIS Rides to your home screen</div>
-        <div style="color:#888780;font-size:11px">Tap to install — works like a real app</div>
-      </div>
-      <button onclick="installApp()" style="background:#7F77DD;border:none;color:white;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;white-space:nowrap">Install</button>
-      <button onclick="document.getElementById('install-banner').remove()" style="background:none;border:none;color:#888780;cursor:pointer;font-size:18px;padding:0 2px">×</button>
-    `;
+    banner.style.cssText = `position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:#1a1a1f;border:1px solid rgba(127,119,221,0.4);border-radius:12px;padding:12px 16px;z-index:999;font-size:12px;color:#e8e6e0;max-width:300px;width:calc(100% - 40px);text-align:center`;
+    banner.innerHTML = `<div style="font-size:20px;margin-bottom:6px">🚗</div><div style="font-weight:500;margin-bottom:3px">Add VIS Rides to home screen</div><div style="color:#888780;font-size:11px;line-height:1.5">Tap <strong style="color:#e8e6e0">Share</strong> then <strong style="color:#e8e6e0">Add to Home Screen</strong></div><button onclick="document.getElementById('install-banner').remove()" style="margin-top:10px;background:none;border:1px solid rgba(255,255,255,0.1);color:#888780;border-radius:6px;padding:5px 14px;font-size:11px;cursor:pointer">Dismiss</button>`;
     document.body.appendChild(banner);
-  }
-
-  async function installApp() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log('[PWA] install outcome:', outcome);
-    deferredPrompt = null;
-    document.getElementById('install-banner')?.remove();
-  }
-
-  // iOS — show manual instructions since iOS doesn't fire beforeinstallprompt
-  function isIOS() {
-    return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
-  }
-  function isInStandaloneMode() {
-    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  }
-
-  if (isIOS() && !isInStandaloneMode()) {
-    setTimeout(() => {
-      if (document.getElementById('install-banner')) return;
-      const banner = document.createElement('div');
-      banner.id = 'install-banner';
-      banner.style.cssText = `
-        position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-        background: #1a1a1f; border: 1px solid rgba(127,119,221,0.4);
-        border-radius: 12px; padding: 14px 18px; z-index: 999;
-        font-size: 13px; color: #e8e6e0; box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-        max-width: 320px; width: calc(100% - 48px); text-align: center;
-      `;
-      banner.innerHTML = `
-        <div style="font-size:22px;margin-bottom:8px">🚗</div>
-        <div style="font-weight:500;margin-bottom:4px">Add VIS Rides to your home screen</div>
-        <div style="color:#888780;font-size:12px;line-height:1.5">
-          Tap the <strong style="color:#e8e6e0">Share</strong> button below,
-          then tap <strong style="color:#e8e6e0">Add to Home Screen</strong>
-        </div>
-        <button onclick="document.getElementById('install-banner').remove()" style="margin-top:12px;background:none;border:1px solid rgba(255,255,255,0.1);color:#888780;border-radius:8px;padding:6px 16px;font-size:12px;cursor:pointer">Dismiss</button>
-      `;
-      document.body.appendChild(banner);
-    }, 3000);
-  }
+  }, 3000);
+}
 </script>
 </body>
 </html>
