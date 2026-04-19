@@ -1,500 +1,864 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>VIS Transportation Assistant</title>
+<title>lala — Transportation Assistant</title>
+
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#7F77DD">
+<meta name="theme-color" content="#D4A96A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="VIS Rides">
+<meta name="apple-mobile-web-app-title" content="lala">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="application-name" content="VIS Rides">
+<meta name="application-name" content="lala">
+<meta name="description" content="Book medical transportation in any language — voice or text.">
+
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500&display=swap');
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
   :root {
-    --bg: #0f0f11;
-    --surface: #1a1a1f;
-    --surface2: #242429;
-    --border: rgba(255,255,255,0.08);
-    --text: #e8e6e0;
-    --muted: #888780;
-    --accent: #7F77DD;
-    --teal: #1D9E75;
-    --user-bg: #2a2a35;
-    --mic-active: #E24B4A;
+    --bg:         #F5F0E8;
+    --surface:    #FAF7F2;
+    --surface2:   #EDE8DF;
+    --border:     rgba(0,0,0,0.08);
+    --border-mid: rgba(0,0,0,0.13);
+    --text:       #1A1916;
+    --text-sub:   #6B6760;
+    --text-muted: #9B9590;
+    --accent:     #D4A96A;
+    --accent-dark:#B8894A;
+    --accent-bg:  rgba(212,169,106,0.12);
+    --teal:       #2A9D78;
+    --red:        #C03C3C;
+    --shadow-sm:  0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md:  0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg:  0 12px 40px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+    --font:       'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-  header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: var(--surface); flex-shrink: 0; }
-  .logo { width: 34px; height: 34px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
-  .header-info h1 { font-size: 14px; font-weight: 500; }
-  .header-info p { font-size: 11px; color: var(--muted); margin-top: 1px; }
-  .header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-  .status-dot { width: 8px; height: 8px; background: var(--teal); border-radius: 50%; box-shadow: 0 0 0 3px rgba(29,158,117,0.2); }
-  #conn-status { font-size: 11px; padding: 3px 8px; border-radius: 10px; }
-  .conn-ok { background: rgba(29,158,117,0.15); color: var(--teal); }
-  .conn-err { background: rgba(226,75,74,0.15); color: #E24B4A; }
+  html, body { height: 100%; overflow: hidden; }
 
-  /* Voice toggle in header */
-  .voice-toggle { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); cursor: pointer; user-select: none; }
-  .voice-toggle input { display: none; }
-  .toggle-pill { width: 28px; height: 16px; background: var(--surface2); border-radius: 8px; position: relative; transition: background 0.2s; border: 1px solid var(--border); }
-  .toggle-pill::after { content: ''; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; background: var(--muted); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
-  .voice-toggle input:checked + .toggle-pill { background: rgba(127,119,221,0.3); border-color: var(--accent); }
-  .voice-toggle input:checked + .toggle-pill::after { transform: translateX(12px); background: var(--accent); }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.022'/%3E%3C/svg%3E");
+  }
 
-  .member-bar { padding: 8px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); flex-shrink: 0; }
-  .member-bar select, .member-bar button { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; }
-  .member-bar button { background: var(--accent); border-color: var(--accent); color: white; }
+  /* ── HEADER ───────────────────────────────────────────── */
+  header {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 11px;
+    background: var(--surface);
+    position: relative; z-index: 10;
+    flex-shrink: 0;
+  }
+  .logo {
+    width: 38px; height: 38px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff; border-radius: 10px;
+    box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.9);
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .header-info { flex: 1; min-width: 0; }
+  .header-info h1 { font-size: 15px; font-weight: 500; letter-spacing: -0.015em; }
+  .header-info p  { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .header-right   { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
-  .messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
-  .message { display: flex; gap: 10px; max-width: 100%; }
+  /* Language selector in header */
+  #lang-select {
+    background: var(--surface2);
+    border: 1px solid var(--border-mid);
+    color: var(--text); border-radius: 8px;
+    padding: 4px 8px; font-size: 11px;
+    cursor: pointer; font-family: var(--font);
+    max-width: 110px;
+  }
+
+  #conn-status {
+    font-size: 11px; padding: 3px 8px;
+    border-radius: 20px; font-weight: 500;
+  }
+  .conn-ok  { background: rgba(42,157,120,0.12); color: var(--teal); }
+  .conn-err { background: rgba(192,60,60,0.1);   color: var(--red); }
+
+  .status-dot {
+    width: 7px; height: 7px; background: var(--teal);
+    border-radius: 50%; box-shadow: 0 0 0 3px rgba(42,157,120,0.2);
+    animation: pulse-dot 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%,100% { box-shadow: 0 0 0 3px rgba(42,157,120,0.2); }
+    50%      { box-shadow: 0 0 0 5px rgba(42,157,120,0.07); }
+  }
+
+  /* ── MEMBER BAR ───────────────────────────────────────── */
+  .member-bar {
+    padding: 8px 18px; background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    gap: 10px; font-size: 12px;
+    color: var(--text-sub); flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .member-bar select {
+    background: var(--surface); border: 1px solid var(--border-mid);
+    color: var(--text); border-radius: 8px; padding: 4px 9px;
+    font-size: 11.5px; cursor: pointer; font-family: var(--font);
+    box-shadow: var(--shadow-sm);
+  }
+  .member-bar button {
+    background: var(--text); border: none; color: var(--bg);
+    border-radius: 8px; padding: 4px 12px; font-size: 11.5px;
+    cursor: pointer; font-family: var(--font); font-weight: 500;
+    transition: opacity 0.15s;
+  }
+  .member-bar button:hover { opacity: 0.8; }
+
+  /* ── MESSAGES ─────────────────────────────────────────── */
+  .messages {
+    flex: 1; overflow-y: auto;
+    padding: 24px 18px;
+    display: flex; flex-direction: column; gap: 18px;
+    scroll-behavior: smooth;
+  }
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 4px; }
+
+  .message {
+    display: flex; gap: 10px; max-width: 700px;
+    animation: msg-in 0.2s ease-out both;
+  }
+  @keyframes msg-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
   .message.user { align-self: flex-end; flex-direction: row-reverse; }
-  .avatar { width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; }
-  .avatar.ai { background: var(--accent); color: white; }
-  .avatar.user { background: var(--surface2); color: var(--muted); }
-  .bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.6; max-width: calc(100% - 42px); }
-  .message.ai .bubble { background: var(--surface); border: 1px solid var(--border); border-top-left-radius: 3px; }
-  .message.user .bubble { background: var(--user-bg); border: 1px solid var(--border); border-top-right-radius: 3px; }
 
-  /* Speak button on AI messages */
-  .speak-btn { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; padding: 4px 10px; background: none; border: 1px solid var(--border); border-radius: 20px; color: var(--muted); font-size: 11px; cursor: pointer; transition: all 0.15s; }
-  .speak-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .speak-btn.speaking { border-color: var(--teal); color: var(--teal); }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 8px;
+    flex-shrink: 0; display: flex; align-items: center;
+    justify-content: center; margin-top: 2px; box-shadow: var(--shadow-sm);
+  }
+  .avatar.ai   { background: #fff; border: 1px solid var(--border); overflow: hidden; }
+  .avatar.user { background: var(--surface2); border: 1px solid var(--border); font-size: 10px; font-weight: 500; color: var(--text-sub); }
 
-  .thinking { display: flex; gap: 4px; align-items: center; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; border-top-left-radius: 3px; }
-  .dot { width: 5px; height: 5px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; }
-  .dot:nth-child(2) { animation-delay: 0.2s; }
-  .dot:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:0.4}40%{transform:translateY(-4px);opacity:1} }
+  .bubble {
+    padding: 11px 15px; border-radius: 14px;
+    font-size: 14px; line-height: 1.65; max-width: 500px;
+    box-shadow: var(--shadow-sm);
+  }
+  .message.ai .bubble   { background: var(--surface); border: 1px solid var(--border); border-top-left-radius: 4px; }
+  .message.user .bubble { background: var(--text); color: var(--bg); border-top-right-radius: 4px; }
 
-  /* Input area */
-  .input-area { padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface); display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
-  textarea { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; padding: 9px 12px; resize: none; min-height: 40px; max-height: 100px; line-height: 1.5; font-family: inherit; outline: none; transition: border-color 0.15s; }
-  textarea:focus { border-color: var(--accent); }
-  textarea::placeholder { color: var(--muted); }
+  /* Voice transcript label */
+  .voice-label {
+    font-size: 10px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 4px;
+    margin-bottom: 4px; opacity: 0.8;
+  }
+  .voice-label svg { opacity: 0.6; }
 
-  /* Mic button */
-  #mic-btn { width: 40px; height: 40px; border-radius: 10px; border: none; background: var(--surface2); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; position: relative; }
-  #mic-btn:hover { background: rgba(127,119,221,0.15); color: var(--accent); }
-  #mic-btn.listening { background: rgba(226,75,74,0.15); color: var(--mic-active); animation: pulse-ring 1.2s ease-in-out infinite; }
-  @keyframes pulse-ring { 0%,100%{box-shadow:0 0 0 0 rgba(226,75,74,0.3)}50%{box-shadow:0 0 0 6px rgba(226,75,74,0)} }
+  /* ── THINKING ─────────────────────────────────────────── */
+  .thinking {
+    display: flex; gap: 5px; align-items: center;
+    padding: 13px 17px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 14px;
+    border-top-left-radius: 4px; box-shadow: var(--shadow-sm); width: fit-content;
+  }
+  .dot {
+    width: 5px; height: 5px; background: var(--text-muted);
+    border-radius: 50%; animation: bounce 1.3s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.18s; }
+  .dot:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes bounce {
+    0%,80%,100% { transform: translateY(0); opacity: 0.35; }
+    40%          { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* ── LANG BADGE ───────────────────────────────────────── */
+  .lang-badge {
+    display: inline-block; font-size: 9px;
+    padding: 1px 5px; border-radius: 8px;
+    margin-left: 6px; vertical-align: middle;
+    font-weight: 500; letter-spacing: 0.04em;
+    background: var(--surface2); color: var(--text-muted);
+  }
+
+  /* ── QUICK REPLIES ────────────────────────────────────── */
+  .quick-replies {
+    display: flex; gap: 7px; flex-wrap: wrap;
+    padding: 0 18px 12px; flex-shrink: 0;
+  }
+  .qr {
+    background: var(--surface); border: 1px solid var(--border-mid);
+    border-radius: 20px; padding: 5px 13px;
+    font-size: 12px; color: var(--text-sub);
+    cursor: pointer; transition: all 0.15s;
+    box-shadow: var(--shadow-sm); font-family: var(--font);
+  }
+  .qr:hover {
+    border-color: var(--accent); color: var(--text);
+    background: var(--accent-bg); transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* ── INPUT AREA ───────────────────────────────────────── */
+  .input-area {
+    padding: 12px 18px; border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex; gap: 8px; align-items: flex-end;
+    flex-shrink: 0;
+  }
+  .input-wrap {
+    flex: 1; background: var(--bg);
+    border: 1px solid var(--border-mid); border-radius: 14px;
+    display: flex; align-items: flex-end;
+    padding: 2px 4px 2px 13px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-shadow: var(--shadow-sm);
+  }
+  .input-wrap:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(212,169,106,0.15);
+  }
+  textarea {
+    flex: 1; background: transparent; border: none;
+    color: var(--text); font-size: 14px; padding: 10px 0;
+    resize: none; min-height: 42px; max-height: 120px;
+    line-height: 1.5; font-family: var(--font); outline: none;
+  }
+  textarea::placeholder { color: var(--text-muted); }
 
   /* Send button */
-  #send-btn { width: 40px; height: 40px; border-radius: 10px; border: none; background: var(--accent); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity 0.15s; }
-  #send-btn:hover { opacity: 0.85; }
-  #send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  button#send {
+    background: var(--text); border: none;
+    border-radius: 11px; color: var(--bg);
+    width: 36px; height: 36px; margin: 3px;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  button#send:hover   { opacity: 0.85; transform: scale(1.04); }
+  button#send:active  { transform: scale(0.96); }
+  button#send:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 
-  /* Listening overlay */
-  #listening-indicator { display: none; position: absolute; bottom: 72px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid rgba(226,75,74,0.4); border-radius: 12px; padding: 10px 18px; font-size: 12px; color: #E24B4A; white-space: nowrap; z-index: 10; }
-  #listening-indicator.show { display: block; }
+  /* ── MIC BUTTON ───────────────────────────────────────── */
+  button#mic {
+    width: 44px; height: 44px; flex-shrink: 0;
+    border: 1.5px solid var(--border-mid);
+    border-radius: 14px; background: var(--surface);
+    color: var(--text-sub); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s; box-shadow: var(--shadow-sm);
+    position: relative; overflow: hidden;
+  }
+  button#mic:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
 
-  .quick-replies { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 16px 10px; flex-shrink: 0; }
-  .qr { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 11px; color: var(--muted); cursor: pointer; transition: all 0.15s; }
-  .qr:hover { border-color: var(--accent); color: var(--text); }
-  .lang-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 5px; vertical-align: middle; }
-  .lang-en { background: rgba(127,119,221,0.15); color: var(--accent); }
-  .lang-es { background: rgba(29,158,117,0.15); color: var(--teal); }
+  /* Listening state */
+  button#mic.listening {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(192,60,60,0.2), var(--shadow-sm);
+    animation: mic-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes mic-pulse {
+    0%,100% { box-shadow: 0 0 0 4px rgba(192,60,60,0.2), var(--shadow-sm); }
+    50%      { box-shadow: 0 0 0 8px rgba(192,60,60,0.08), var(--shadow-sm); }
+  }
+
+  /* ── VOICE STATUS BAR ─────────────────────────────────── */
+  #voice-status {
+    display: none;
+    padding: 8px 18px;
+    background: rgba(192,60,60,0.07);
+    border-top: 1px solid rgba(192,60,60,0.15);
+    font-size: 12px; color: var(--red);
+    align-items: center; gap: 8px;
+    flex-shrink: 0;
+  }
+  #voice-status.active { display: flex; }
+  #voice-status .wave {
+    display: flex; gap: 2px; align-items: center;
+  }
+  #voice-status .wave span {
+    display: block; width: 3px; border-radius: 2px;
+    background: var(--red); animation: wave 0.8s ease-in-out infinite;
+  }
+  #voice-status .wave span:nth-child(1) { height: 6px;  animation-delay: 0s; }
+  #voice-status .wave span:nth-child(2) { height: 12px; animation-delay: 0.1s; }
+  #voice-status .wave span:nth-child(3) { height: 8px;  animation-delay: 0.2s; }
+  #voice-status .wave span:nth-child(4) { height: 14px; animation-delay: 0.15s; }
+  #voice-status .wave span:nth-child(5) { height: 6px;  animation-delay: 0.05s; }
+  @keyframes wave {
+    0%,100% { transform: scaleY(0.5); opacity: 0.5; }
+    50%      { transform: scaleY(1.4); opacity: 1; }
+  }
+  #voice-status #interim-text {
+    flex: 1; font-style: italic; color: var(--text-sub);
+    font-size: 12px; min-width: 0; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+  #voice-status button {
+    background: none; border: none; color: var(--red);
+    cursor: pointer; font-size: 18px; line-height: 1; padding: 0;
+  }
+
+  /* ── INSTALL BANNER ───────────────────────────────────── */
+  .install-banner {
+    position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid var(--border-mid);
+    border-radius: 14px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+    z-index: 999; font-size: 13px; box-shadow: var(--shadow-lg);
+    max-width: 320px; width: calc(100% - 48px);
+    animation: slide-up 0.3s ease-out;
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* ── NO-SUPPORT WARNING ───────────────────────────────── */
+  #no-speech-warn {
+    display: none; padding: 6px 18px;
+    background: rgba(212,169,106,0.12);
+    border-bottom: 1px solid rgba(212,169,106,0.2);
+    font-size: 11.5px; color: var(--accent-dark);
+    flex-shrink: 0;
+  }
 </style>
 </head>
 <body>
 
+<!-- ── HEADER ──────────────────────────────────────────── -->
 <header>
-  <div class="logo">🚗</div>
+  <div class="logo" id="header-logo-wrap"></div>
   <div class="header-info">
-    <h1>VIS Transportation Assistant</h1>
-    <p>Powered by AI · English &amp; Spanish</p>
+    <h1>lala</h1>
+    <p>Speak or type in any language</p>
   </div>
   <div class="header-right">
-    <label class="voice-toggle" title="AI speaks responses aloud">
-      <input type="checkbox" id="voice-output-toggle" checked>
-      <div class="toggle-pill"></div>
-      <span>Voice</span>
-    </label>
+    <!-- Language hint selector — tells Web Speech API which language to prioritise -->
+    <select id="lang-select" title="Voice language hint">
+      <option value="auto">🌐 Auto</option>
+      <option value="en-US">🇺🇸 English</option>
+      <option value="es-US">🇪🇸 Español</option>
+      <option value="ht">🇭🇹 Kreyòl</option>
+      <option value="fr-FR">🇫🇷 Français</option>
+      <option value="zh-CN">🇨🇳 中文</option>
+      <option value="zh-TW">🇹🇼 繁中</option>
+      <option value="ja-JP">🇯🇵 日本語</option>
+      <option value="ko-KR">🇰🇷 한국어</option>
+      <option value="pt-BR">🇧🇷 Português</option>
+      <option value="ar-SA">🇸🇦 عربي</option>
+      <option value="hi-IN">🇮🇳 हिन्दी</option>
+      <option value="ru-RU">🇷🇺 Русский</option>
+      <option value="de-DE">🇩🇪 Deutsch</option>
+      <option value="it-IT">🇮🇹 Italiano</option>
+      <option value="vi-VN">🇻🇳 Tiếng Việt</option>
+      <option value="tl-PH">🇵🇭 Filipino</option>
+      <option value="sw">🌍 Kiswahili</option>
+      <option value="pl-PL">🇵🇱 Polski</option>
+      <option value="uk-UA">🇺🇦 Українська</option>
+    </select>
     <span id="conn-status" class="conn-ok">Live</span>
     <div class="status-dot"></div>
   </div>
 </header>
 
+<!-- No speech API warning -->
+<div id="no-speech-warn">
+  ⚠️ Voice input is not supported in this browser. Use Chrome or Safari for voice.
+</div>
+
+<!-- ── MEMBER BAR ───────────────────────────────────────── -->
 <div class="member-bar">
   <span>Demo:</span>
   <select id="member-select">
     <option value="">— select member —</option>
-    <option value="MBR-001">MBR-001 · Maria Garcia (Spanish)</option>
-    <option value="MBR-002">MBR-002 · James Williams (English)</option>
+    <option value="MBR-001">MBR-001 · Maria Garcia (ES)</option>
+    <option value="MBR-002">MBR-002 · James Williams (EN)</option>
     <option value="MBR-003">MBR-003 · Robert Chen (no coverage)</option>
   </select>
-  <button onclick="resetChat()">New chat</button>
+  <button onclick="resetChat()">New conversation</button>
 </div>
 
-<div class="messages" id="messages">
-  <div class="message ai">
-    <div class="avatar ai">AI</div>
-    <div class="bubble">
-      Hello! I'm your transportation assistant. I can help you book a ride to your next medical appointment — no phone call needed.<br><br>
-      <strong>Tap the microphone</strong> to speak, or type below.<br><br>
-      <em style="color:var(--muted);font-size:11px">¡También hablo español! Toque el micrófono para hablar.</em>
-    </div>
-  </div>
-</div>
+<!-- ── MESSAGES ─────────────────────────────────────────── -->
+<div class="messages" id="messages"></div>
 
+<!-- ── QUICK REPLIES ────────────────────────────────────── -->
 <div class="quick-replies" id="quick-replies">
-  <div class="qr" onclick="sendQuick('I need a ride to my doctor appointment')">Book a ride (English)</div>
-  <div class="qr" onclick="sendQuick('Necesito un viaje al médico el jueves')">Reservar viaje (Español)</div>
-  <div class="qr" onclick="sendQuick('My member ID is MBR-002')">Use MBR-002</div>
-  <div class="qr" onclick="sendQuick('Mi número de miembro es MBR-001')">Usar MBR-001</div>
+  <div class="qr" onclick="sendQuick('I need a ride to my doctor')">Book ride 🇺🇸</div>
+  <div class="qr" onclick="sendQuick('Necesito un viaje al médico')">Reservar 🇪🇸</div>
+  <div class="qr" onclick="sendQuick('Mwen bezwen yon vwayaj nan doktè a')">Rezève 🇭🇹</div>
+  <div class="qr" onclick="sendQuick('我需要去看医生')">预约 🇨🇳</div>
+  <div class="qr" onclick="sendQuick('医者への交通手段が必要です')">予約 🇯🇵</div>
 </div>
 
-<div style="position:relative">
-  <div id="listening-indicator">🎙 Listening... tap mic to stop</div>
+<!-- ── VOICE STATUS ──────────────────────────────────────── -->
+<div id="voice-status">
+  <div class="wave">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <span id="interim-text">Listening…</span>
+  <button onclick="stopListening()" title="Stop">■</button>
 </div>
 
+<!-- ── INPUT AREA ───────────────────────────────────────── -->
 <div class="input-area">
-  <button id="mic-btn" onclick="toggleMic()" title="Tap to speak">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Mic button -->
+  <button id="mic" onclick="toggleVoice()" title="Speak in any language">
+    <!-- Microphone icon -->
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
       <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
       <line x1="12" y1="19" x2="12" y2="23"/>
-      <line x1="8" y1="23" x2="16" y2="23"/>
+      <line x1="8"  y1="23" x2="16" y2="23"/>
     </svg>
   </button>
-  <textarea id="input" placeholder="Type or tap the mic to speak..." rows="1"></textarea>
-  <button id="send-btn" onclick="sendMessage()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="22" y1="2" x2="11" y2="13"/>
-      <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-    </svg>
-  </button>
+
+  <div class="input-wrap">
+    <textarea id="input" placeholder="Type or speak in any language…" rows="1"></textarea>
+    <button id="send" onclick="sendMessage()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
 </div>
 
 <script>
-const BACKEND = window.location.origin;
-let history = [];
-let recognition = null;
-let isListening = false;
-let currentUtterance = null;
+// ═══════════════════════════════════════════════════════
+// LOGO
+// ═══════════════════════════════════════════════════════
+function makeLogo(size) {
+  const ns  = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('width',  size);
+  svg.setAttribute('height', size);
+  svg.setAttribute('xmlns',  ns);
+  // 4-pointed star matching uploaded image:
+  // sharp top arm, sharp bottom-left arm, sharp bottom-right arm,
+  // missing 4th bottom — open concave base. Deep pinched waists.
+  // Silver metallic: white-silver glowing core → mid silver → dark tips.
+  svg.innerHTML = `
+    <defs>
+      <radialGradient id="rc" cx="50%" cy="44%" r="46%" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="#ffffff"/>
+        <stop offset="20%"  stop-color="#eff0f2"/>
+        <stop offset="45%"  stop-color="#cdd0d5"/>
+        <stop offset="72%"  stop-color="#a8adb6"/>
+        <stop offset="100%" stop-color="#787d87"/>
+      </radialGradient>
+      <radialGradient id="rt" cx="50%" cy="4%"  r="54%" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="#4a4e57" stop-opacity="0.9"/>
+        <stop offset="55%"  stop-color="#4a4e57" stop-opacity="0.2"/>
+        <stop offset="100%" stop-color="#4a4e57" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="rl" cx="4%"  cy="88%" r="52%" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="#424650" stop-opacity="0.85"/>
+        <stop offset="55%"  stop-color="#424650" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#424650" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="rr" cx="96%" cy="88%" r="52%" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="#424650" stop-opacity="0.85"/>
+        <stop offset="55%"  stop-color="#424650" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#424650" stop-opacity="0"/>
+      </radialGradient>
+      <filter id="halo" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="4.5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="spec" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="1.6"/>
+      </filter>
+    </defs>
+    <g filter="url(#halo)">
+      <path d="
+        M 50 7
+        C 49 19,46 31,42 43
+        C 37 45,27 47,13 53
+        C 24 53,37 55,44 57
+        C 40 63,25 73,8 89
+        C 19 79,33 67,44 63
+        C 46 69,48 79,50 93
+        C 52 79,54 69,56 63
+        C 67 67,81 79,92 89
+        C 75 73,60 63,56 57
+        C 63 55,76 53,87 53
+        C 73 47,63 45,58 43
+        C 54 31,51 19,50 7 Z
+      " fill="url(#rc)"/>
+      <path d="
+        M 50 7
+        C 49 19,46 31,42 43
+        C 37 45,27 47,13 53
+        C 24 53,37 55,44 57
+        C 40 63,25 73,8 89
+        C 19 79,33 67,44 63
+        C 46 69,48 79,50 93
+        C 52 79,54 69,56 63
+        C 67 67,81 79,92 89
+        C 75 73,60 63,56 57
+        C 63 55,76 53,87 53
+        C 73 47,63 45,58 43
+        C 54 31,51 19,50 7 Z
+      " fill="url(#rt)" opacity="0.72"/>
+      <path d="
+        M 50 7
+        C 49 19,46 31,42 43
+        C 37 45,27 47,13 53
+        C 24 53,37 55,44 57
+        C 40 63,25 73,8 89
+        C 19 79,33 67,44 63
+        C 46 69,48 79,50 93
+        C 52 79,54 69,56 63
+        C 67 67,81 79,92 89
+        C 75 73,60 63,56 57
+        C 63 55,76 53,87 53
+        C 73 47,63 45,58 43
+        C 54 31,51 19,50 7 Z
+      " fill="url(#rl)" opacity="0.68"/>
+      <path d="
+        M 50 7
+        C 49 19,46 31,42 43
+        C 37 45,27 47,13 53
+        C 24 53,37 55,44 57
+        C 40 63,25 73,8 89
+        C 19 79,33 67,44 63
+        C 46 69,48 79,50 93
+        C 52 79,54 69,56 63
+        C 67 67,81 79,92 89
+        C 75 73,60 63,56 57
+        C 63 55,76 53,87 53
+        C 73 47,63 45,58 43
+        C 54 31,51 19,50 7 Z
+      " fill="url(#rr)" opacity="0.68"/>
+      <ellipse cx="50" cy="50" rx="8"   ry="7"   fill="white" opacity="0.48" filter="url(#spec)"/>
+      <ellipse cx="48" cy="47" rx="3.5" ry="2.5" fill="white" opacity="0.65" filter="url(#spec)"/>
+    </g>`;
+  return svg;
+}
 
+document.getElementById('header-logo-wrap').appendChild(makeLogo(26));
+
+// ═══════════════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════════════
+const BACKEND    = window.location.origin;
+let   chatHistory = [];
 const messagesEl = document.getElementById('messages');
-const inputEl = document.getElementById('input');
-const sendBtn = document.getElementById('send-btn');
-const micBtn = document.getElementById('mic-btn');
-const listeningIndicator = document.getElementById('listening-indicator');
-const voiceOutputToggle = document.getElementById('voice-output-toggle');
+const inputEl    = document.getElementById('input');
+const sendBtn    = document.getElementById('send');
+const micBtn     = document.getElementById('mic');
 
-// ── Text input handlers ──────────────────────────────────────────────────────
+// ── Init greeting ────────────────────────────────────────
+(function initChat() {
+  const div = mkAiMessage();
+  div.querySelector('.bubble').innerHTML = `
+    Hello! I'm <strong>lala</strong>, your transportation assistant.<br><br>
+    I speak <strong>any language</strong> — just type or tap the 🎙 mic and speak.<br>
+    I'll book your medical ride in English, Spanish, Haitian Creole, Chinese, Japanese, or whatever language you prefer.<br><br>
+    <em style="color:var(--text-muted);font-size:12.5px">
+      🇺🇸 English &nbsp;·&nbsp; 🇪🇸 Español &nbsp;·&nbsp; 🇭🇹 Kreyòl &nbsp;·&nbsp;
+      🇨🇳 中文 &nbsp;·&nbsp; 🇯🇵 日本語 &nbsp;·&nbsp; 🌐 + more
+    </em>`;
+  messagesEl.appendChild(div);
+})();
+
+// ── Textarea auto-resize ─────────────────────────────────
 inputEl.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 inputEl.addEventListener('input', () => {
   inputEl.style.height = 'auto';
-  inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
 });
 
-// ── Language detection ───────────────────────────────────────────────────────
-function detectLang(text) {
-  const sw = ['necesito','viaje','médico','cita','por favor','gracias','hola','quiero','tengo','confirmado','recogida','destino','reserva','conductor','viaje'];
-  return sw.some(w => text.toLowerCase().includes(w)) ? 'es' : 'en';
+function getMemberId() { return document.getElementById('member-select').value || null; }
+
+// ═══════════════════════════════════════════════════════
+// VOICE — Web Speech API
+// Supports all languages the browser's speech engine knows.
+// Language hint from the dropdown improves accuracy but
+// "auto" lets the engine detect language automatically.
+// ═══════════════════════════════════════════════════════
+const hasSpeech = ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+if (!hasSpeech) {
+  document.getElementById('no-speech-warn').style.display = 'block';
+  micBtn.disabled = true;
+  micBtn.style.opacity = '0.3';
+  micBtn.title = 'Voice not supported in this browser';
 }
 
-// ── Speech recognition (member speaks → text) ────────────────────────────────
-function setupRecognition() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) return null;
+let recognition  = null;
+let isListening  = false;
+let finalTranscript = '';
 
-  const rec = new SpeechRecognition();
-  rec.continuous = false;
-  rec.interimResults = true;
-  rec.maxAlternatives = 1;
+function buildRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const r  = new SR();
 
-  rec.onstart = () => {
+  const langVal = document.getElementById('lang-select').value;
+
+  // If "auto", use no specific lang — browser will detect.
+  // Otherwise use the selected BCP-47 tag.
+  if (langVal !== 'auto') r.lang = langVal;
+
+  r.continuous          = true;   // keep mic open until user stops
+  r.interimResults      = true;   // show words as they come in
+  r.maxAlternatives     = 1;
+
+  r.onstart = () => {
     isListening = true;
     micBtn.classList.add('listening');
-    listeningIndicator.classList.add('show');
+    document.getElementById('voice-status').classList.add('active');
+    finalTranscript = '';
   };
 
-  rec.onresult = (e) => {
-    const transcript = Array.from(e.results)
-      .map(r => r[0].transcript)
-      .join('');
-
-    // Show what the member is saying in real time in the textarea
-    inputEl.value = transcript;
-    inputEl.style.height = 'auto';
-    inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
-
-    // Set language based on what they're speaking
-    const lang = detectLang(transcript);
-    rec.lang = lang === 'es' ? 'es-US' : 'en-US';
-
-    // If this is a final result, send automatically
-    if (e.results[e.results.length - 1].isFinal) {
-      stopListening();
-      setTimeout(() => sendMessage(), 300);
+  r.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) finalTranscript += t + ' ';
+      else interim += t;
     }
+    document.getElementById('interim-text').textContent =
+      finalTranscript + interim || 'Listening…';
   };
 
-  rec.onerror = (e) => {
-    console.warn('[mic]', e.error);
+  r.onerror = err => {
+    console.warn('Speech error:', err.error);
     stopListening();
-    if (e.error === 'not-allowed') {
-      addSystemMessage('Microphone access was denied. Please allow microphone access in your browser settings.');
+    if (err.error === 'not-allowed') {
+      showToast('Microphone access denied. Please allow mic in browser settings.');
+    } else if (err.error === 'network') {
+      showToast('Speech recognition needs an internet connection.');
     }
   };
 
-  rec.onend = () => stopListening();
+  r.onend = () => {
+    // If we still have a final transcript when recognition ends, send it
+    if (finalTranscript.trim()) {
+      inputEl.value = finalTranscript.trim();
+      autoGrow();
+      sendMessage(true); // true = came from voice
+    }
+    stopListening();
+  };
 
-  return rec;
+  return r;
 }
 
-function toggleMic() {
-  if (isListening) {
-    stopListening();
-    return;
-  }
-  startListening();
+function toggleVoice() {
+  if (!hasSpeech) return;
+  isListening ? stopListening() : startListening();
 }
 
 function startListening() {
-  // Stop any current AI speech when member starts talking
-  stopSpeaking();
-
-  if (!recognition) recognition = setupRecognition();
-  if (!recognition) {
-    addSystemMessage('Voice input is not supported in this browser. Please use Chrome or Safari.');
-    return;
-  }
-
-  // Detect member language preference from selected member
-  const memberId = document.getElementById('member-select').value;
-  recognition.lang = memberId === 'MBR-001' ? 'es-US' : 'en-US';
-
+  recognition = buildRecognition();
   try {
     recognition.start();
   } catch(e) {
-    console.warn('[mic] already started');
+    console.warn('Recognition start failed:', e);
   }
 }
 
 function stopListening() {
   isListening = false;
   micBtn.classList.remove('listening');
-  listeningIndicator.classList.remove('show');
-  try { recognition?.stop(); } catch(e) {}
+  document.getElementById('voice-status').classList.remove('active');
+  document.getElementById('interim-text').textContent = 'Listening…';
+  if (recognition) {
+    try { recognition.stop(); } catch(e) {}
+    recognition = null;
+  }
 }
 
-// ── Text to speech (AI speaks back) ──────────────────────────────────────────
-function speak(text, lang = 'en') {
-  if (!voiceOutputToggle.checked) return;
-  if (!window.speechSynthesis) return;
-
-  // Stop any current speech
-  stopSpeaking();
-
-  // Strip markdown bold/italic for cleaner speech
-  const clean = text
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/\*(.*?)\*/g, '$1')
-    .replace(/---/g, '')
-    .replace(/[🚗📍🕐🏥📅✅🎉😊📌🔄]/g, '')
-    .trim();
-
-  const utterance = new SpeechSynthesisUtterance(clean);
-  utterance.lang = lang === 'es' ? 'es-US' : 'en-US';
-  utterance.rate = 0.92;
-  utterance.pitch = 1.05;
-  utterance.volume = 1;
-
-  // Try to find a good natural voice
-  const voices = window.speechSynthesis.getVoices();
-  const preferred = voices.find(v =>
-    lang === 'es'
-      ? (v.lang.startsWith('es') && v.name.includes('Natural'))
-      : (v.lang.startsWith('en') && (v.name.includes('Samantha') || v.name.includes('Natural') || v.name.includes('Google')))
-  ) || voices.find(v => lang === 'es' ? v.lang.startsWith('es') : v.lang.startsWith('en'));
-
-  if (preferred) utterance.voice = preferred;
-
-  currentUtterance = utterance;
-  window.speechSynthesis.speak(utterance);
+// ═══════════════════════════════════════════════════════
+// MESSAGING
+// ═══════════════════════════════════════════════════════
+function mkAiMessage() {
+  const div = document.createElement('div');
+  div.className = 'message ai';
+  const av  = document.createElement('div');
+  av.className = 'avatar ai';
+  av.appendChild(makeLogo(20));
+  const bub = document.createElement('div');
+  bub.className = 'bubble';
+  div.appendChild(av);
+  div.appendChild(bub);
+  return div;
 }
 
-function stopSpeaking() {
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-  currentUtterance = null;
-  // Reset all speak buttons
-  document.querySelectorAll('.speak-btn').forEach(b => {
-    b.classList.remove('speaking');
-    b.textContent = '🔊 Speak';
-  });
-}
-
-// Load voices (some browsers need this event)
-if (window.speechSynthesis) {
-  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-}
-
-// ── Message rendering ─────────────────────────────────────────────────────────
-function addMessage(role, text) {
+function addMessage(role, text, fromVoice) {
   const div = document.createElement('div');
   div.className = `message ${role}`;
+  const av = document.createElement('div');
+  av.className = `avatar ${role}`;
+  if (role === 'ai') av.appendChild(makeLogo(20));
+  else av.textContent = 'You';
+  const bub = document.createElement('div');
+  bub.className = 'bubble';
 
-  const avatar = document.createElement('div');
-  avatar.className = `avatar ${role}`;
-  avatar.textContent = role === 'ai' ? 'AI' : 'You';
-
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-
-  const lang = detectLang(text);
-  const badge = role === 'ai'
-    ? `<span class="lang-badge lang-${lang}">${lang.toUpperCase()}</span>`
-    : '';
+  // Voice label for user messages that came from mic
+  let voiceLabel = '';
+  if (fromVoice && role === 'user') {
+    voiceLabel = `<div class="voice-label">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      </svg>
+      Voice
+    </div>`;
+  }
 
   const formatted = text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/VIS-\d+/g, '<strong style="color:#5DCAA5">$&</strong>')
+    .replace(/VIS-\d+/g, '<strong style="color:var(--teal)">$&</strong>')
     .replace(/\n/g, '<br>');
 
-  // Add a speak button on AI messages
-  const speakBtnHtml = role === 'ai'
-    ? `<br><button class="speak-btn" onclick="handleSpeakBtn(this, ${JSON.stringify(text)}, '${lang}')">🔊 Speak</button>`
-    : '';
-
-  bubble.innerHTML = formatted + badge + speakBtnHtml;
-
-  div.appendChild(avatar);
-  div.appendChild(bubble);
-  messagesEl.appendChild(div);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-
-  // Auto-speak AI responses if voice output is on
-  if (role === 'ai' && voiceOutputToggle.checked) {
-    speak(text, lang);
-    // Mark the speak button as active
-    const btn = bubble.querySelector('.speak-btn');
-    if (btn) btn.classList.add('speaking');
-  }
-}
-
-function handleSpeakBtn(btn, text, lang) {
-  if (btn.classList.contains('speaking')) {
-    stopSpeaking();
-  } else {
-    stopSpeaking();
-    btn.classList.add('speaking');
-    btn.textContent = '⏹ Stop';
-    speak(text, lang);
-    if (currentUtterance) {
-      currentUtterance.onend = () => {
-        btn.classList.remove('speaking');
-        btn.textContent = '🔊 Speak';
-      };
-    }
-  }
-}
-
-function addSystemMessage(text) {
-  const div = document.createElement('div');
-  div.style.cssText = 'text-align:center;font-size:11px;color:var(--muted);padding:4px 0';
-  div.textContent = text;
+  bub.innerHTML = voiceLabel + formatted;
+  div.appendChild(av);
+  div.appendChild(bub);
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
 function addThinking() {
   const div = document.createElement('div');
-  div.className = 'message ai';
-  div.id = 'thinking';
-  div.innerHTML = `<div class="avatar ai">AI</div><div class="thinking"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  div.className = 'message ai'; div.id = 'thinking';
+  const av = document.createElement('div');
+  av.className = 'avatar ai';
+  av.appendChild(makeLogo(20));
+  div.appendChild(av);
+  const t = document.createElement('div');
+  t.className = 'thinking';
+  t.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  div.appendChild(t);
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-// ── Send message ──────────────────────────────────────────────────────────────
-async function sendMessage() {
+async function sendMessage(fromVoice) {
   const text = inputEl.value.trim();
   if (!text || sendBtn.disabled) return;
-
-  inputEl.value = '';
-  inputEl.style.height = 'auto';
+  inputEl.value = ''; inputEl.style.height = 'auto';
   document.getElementById('quick-replies').style.display = 'none';
   sendBtn.disabled = true;
-  stopSpeaking();
-
-  addMessage('user', text);
+  addMessage('user', text, fromVoice);
   addThinking();
-
   try {
-    const res = await fetch(`${BACKEND}/chat`, {
+    const res  = await fetch(`${BACKEND}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: text,
-        history,
-        member_id: document.getElementById('member-select').value || null
+        message:   text,
+        history:   chatHistory,
+        member_id: getMemberId()
       })
     });
     const data = await res.json();
     document.getElementById('thinking')?.remove();
     addMessage('ai', data.reply || 'Something went wrong. Please try again.');
-    if (data.history) history = data.history;
-    document.getElementById('conn-status').textContent = 'Live';
-    document.getElementById('conn-status').className = 'conn-ok';
+    if (data.history) chatHistory = data.history;
+    setConn('ok');
   } catch (err) {
     document.getElementById('thinking')?.remove();
-    addMessage('ai', `Cannot reach the server.\n\n${err.message}`);
-    document.getElementById('conn-status').textContent = 'Offline';
-    document.getElementById('conn-status').className = 'conn-err';
+    addMessage('ai', `Cannot reach the server.\n\nMake sure your Railway URL is set correctly.\n\n${err.message}`);
+    setConn('err');
   }
-
   sendBtn.disabled = false;
   inputEl.focus();
 }
 
-function sendQuick(text) { inputEl.value = text; sendMessage(); }
+function sendQuick(text) { inputEl.value = text; sendMessage(false); }
 
 function resetChat() {
-  history = [];
-  stopSpeaking();
-  messagesEl.innerHTML = `
-    <div class="message ai">
-      <div class="avatar ai">AI</div>
-      <div class="bubble">
-        Hello! I'm your transportation assistant. I can help you book a ride to your next medical appointment — no phone call needed.<br><br>
-        <strong>Tap the microphone</strong> to speak, or type below.<br><br>
-        <em style="color:var(--muted);font-size:11px">¡También hablo español! Toque el micrófono para hablar.</em>
-      </div>
-    </div>`;
+  chatHistory = [];
+  messagesEl.innerHTML = '';
+  const div = mkAiMessage();
+  div.querySelector('.bubble').innerHTML = `
+    Ready! Select a demo member or share your member ID.<br><br>
+    <em style="color:var(--text-muted);font-size:12px">¡También hablo español! · Mwen pale kreyòl tou · 我也说中文</em>`;
+  messagesEl.appendChild(div);
   document.getElementById('quick-replies').style.display = 'flex';
-  getMemberId();
 }
 
-function getMemberId() { return document.getElementById('member-select').value || null; }
+function setConn(state) {
+  const el = document.getElementById('conn-status');
+  if (state === 'ok') { el.textContent = 'Live';    el.className = 'conn-ok'; }
+  else                { el.textContent = 'Offline'; el.className = 'conn-err'; }
+}
 
-// ── Service worker ────────────────────────────────────────────────────────────
+function autoGrow() {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = `
+    position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+    background:var(--text);color:var(--bg);padding:8px 16px;
+    border-radius:10px;font-size:12.5px;z-index:9999;
+    box-shadow:var(--shadow-lg);max-width:280px;text-align:center;
+    animation:slide-up 0.2s ease-out;`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// ═══════════════════════════════════════════════════════
+// SERVICE WORKER
+// ═══════════════════════════════════════════════════════
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js')
+      .then(r => console.log('[SW] registered:', r.scope))
+      .catch(e => console.warn('[SW] failed:', e));
   });
 }
 
-// ── PWA install prompt ────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// INSTALL PROMPT
+// ═══════════════════════════════════════════════════════
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  showInstallBanner();
+  e.preventDefault(); deferredPrompt = e; showInstallBanner();
 });
 
 function showInstallBanner() {
   if (document.getElementById('install-banner')) return;
   const banner = document.createElement('div');
-  banner.id = 'install-banner';
-  banner.style.cssText = `position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:#1a1a1f;border:1px solid rgba(127,119,221,0.4);border-radius:12px;padding:10px 16px;display:flex;align-items:center;gap:10px;z-index:999;font-size:12px;color:#e8e6e0;max-width:300px;width:calc(100% - 40px)`;
-  banner.innerHTML = `<span style="font-size:20px">🚗</span><div style="flex:1"><div style="font-weight:500;margin-bottom:1px">Add VIS Rides to home screen</div><div style="color:#888780;font-size:10px">Works like a real app</div></div><button onclick="installApp()" style="background:#7F77DD;border:none;color:white;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer">Install</button><button onclick="document.getElementById('install-banner').remove()" style="background:none;border:none;color:#888780;cursor:pointer;font-size:16px">×</button>`;
+  banner.id = 'install-banner'; banner.className = 'install-banner';
+  const iconDiv = document.createElement('div');
+  iconDiv.style.cssText = 'width:32px;height:32px;background:#fff;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden';
+  iconDiv.appendChild(makeLogo(22));
+  banner.appendChild(iconDiv);
+  banner.insertAdjacentHTML('beforeend',`
+    <div style="flex:1">
+      <div style="font-weight:500;margin-bottom:2px;font-size:13px">Add lala to home screen</div>
+      <div style="color:var(--text-muted);font-size:11px">Works like a real app</div>
+    </div>
+    <button onclick="installApp()" style="background:var(--text);border:none;color:var(--bg);border-radius:8px;padding:6px 13px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:var(--font)">Install</button>
+    <button onclick="document.getElementById('install-banner').remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:0 2px;line-height:1">×</button>`);
   document.body.appendChild(banner);
 }
 
@@ -506,14 +870,19 @@ async function installApp() {
   document.getElementById('install-banner')?.remove();
 }
 
-if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone) {
+const isIOS        = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+if (isIOS() && !isStandalone()) {
   setTimeout(() => {
     if (document.getElementById('install-banner')) return;
-    const banner = document.createElement('div');
-    banner.id = 'install-banner';
-    banner.style.cssText = `position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:#1a1a1f;border:1px solid rgba(127,119,221,0.4);border-radius:12px;padding:12px 16px;z-index:999;font-size:12px;color:#e8e6e0;max-width:300px;width:calc(100% - 40px);text-align:center`;
-    banner.innerHTML = `<div style="font-size:20px;margin-bottom:6px">🚗</div><div style="font-weight:500;margin-bottom:3px">Add VIS Rides to home screen</div><div style="color:#888780;font-size:11px;line-height:1.5">Tap <strong style="color:#e8e6e0">Share</strong> then <strong style="color:#e8e6e0">Add to Home Screen</strong></div><button onclick="document.getElementById('install-banner').remove()" style="margin-top:10px;background:none;border:1px solid rgba(255,255,255,0.1);color:#888780;border-radius:6px;padding:5px 14px;font-size:11px;cursor:pointer">Dismiss</button>`;
-    document.body.appendChild(banner);
+    const b = document.createElement('div');
+    b.id = 'install-banner'; b.className = 'install-banner';
+    b.style.cssText += 'flex-direction:column;text-align:center;gap:8px';
+    b.innerHTML = `
+      <div style="font-size:13px;font-weight:500">Add lala to your home screen</div>
+      <div style="color:var(--text-muted);font-size:11.5px;line-height:1.5">Tap <strong style="color:var(--text)">Share</strong> below, then <strong style="color:var(--text)">Add to Home Screen</strong></div>
+      <button onclick="document.getElementById('install-banner').remove()" style="margin-top:4px;background:none;border:1px solid var(--border-mid);color:var(--text-sub);border-radius:8px;padding:5px 16px;font-size:12px;cursor:pointer;font-family:var(--font)">Dismiss</button>`;
+    document.body.appendChild(b);
   }, 3000);
 }
 </script>
